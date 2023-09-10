@@ -1,0 +1,56 @@
+// al是帮助类类名前缀
+
+// 阻止元素被选择和chrome里被拖动到新窗口打开
+@mixin no-select {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.al-no-select {
+  @include no-select;
+}
+
+// 撑满
+@mixin full {
+  height: 100%;
+  width: 100%;
+}
+// flex下的水平和垂直布局全居中
+@mixin flex-h-center {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+@mixin flex-v-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+
+$-h-map: (
+  (1, 36px),
+  (2, 32px),
+  (3, 24px),
+  (4, 24px),
+  (5, 20px),
+  (6, 16px),
+);
+
+@each $i, $font-size in $-h-map {
+  .al-h#{$i} {
+    font-size: $font-size;
+    font-weight: 500;
+    line-height: 1.5rem;
+  }
+}
+
+.al-card-fill.arco-card {
+  .arco-card-body {
+    @include full;
+    > :only-child {
+      @include full;
+    }
+  }
+}
