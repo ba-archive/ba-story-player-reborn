@@ -14,5 +14,3 @@ app
   .use(registerGlobalComponents);
 
 app.mount("#app");
-
-

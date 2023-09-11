@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { onMounted, Ref, ref } from "vue";
-import { initPlayer } from "../../lib";
+import initPlayer from "../../lib";
 defineOptions({
   name: "HHome",
 });
 const Player = ref<HTMLElement>() as Ref<HTMLElement>;
 onMounted(() => {
-  debugger;
   initPlayer(Player.value);
 });
 </script>

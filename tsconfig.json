@@ -15,11 +15,12 @@
     "baseUrl": ".",
     "types": [
       "webpack-env",
-      "./auto-imports.d.ts"
+      "./auto-imports.d.ts",
+      "lib/**/*.d.ts"
     ],
     "paths": {
       "@/*": [ "src/*" ],
-      "@model/*": [ "node_modules/ba-model/src/*" ]
+      "@lib/*": [ "lib/*" ]
     },
     "lib": [
       "esnext",
@@ -29,11 +30,12 @@
     ]
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
+    "lib/**/*.ts",
+    "lib/**/*.d.ts",
+    "lib/**/*.tsx",
+    "lib/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.tsx",
   ],
   "exclude": [
     "node_modules"
