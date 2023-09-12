@@ -1,12 +1,17 @@
 <script setup lang="ts">
-
-import { inject } from "vue";
+import { injectEventBus } from "./util";
 
 defineOptions({
   name: "BaStoryPlayer",
 });
+const uuid = inject("uuid", "");
+const eventBus = injectEventBus();
+const root = ref<HTMLDivElement>();
+onMounted(() => {
+  eventBus.emit("AppMounted", root.value!);
+});
 </script>
 
 <template>
-  <h1>This is player</h1>
+  <div :id="uuid" class="w-1440px h-810px" ref="root"></div>
 </template>

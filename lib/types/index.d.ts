@@ -10,3 +10,12 @@ declare global {
     resourceMap: Map<string, ResourceLoadItem>;
   }
 }
+
+declare namespace PlayerMixins {
+  interface PlayerEvent {
+
+  }
+  interface AnimationType {
+
+  }
+}

@@ -1,4 +1,12 @@
-import { AnimationState, jdumps, Animation, Animatable, GREEN, RESET, BLUE, PlayerCommand } from "./types/player";
+import { AnimationState, jdumps, Animation, Animatable, GREEN, RESET, BLUE } from "./types/player";
+import { initResourceManager, ResourceManager } from "@lib/global/resourceManager";
+import { App } from "vue";
+import { uuid } from "@lib/util";
+import { createApp } from "vue";
+import BaStoryPlayer from "@lib/BaStoryPlayer.vue";
+import { EventBus, PlayerEvent } from "@lib/types/event";
+import EventEmitter from "eventemitter3";
+import { Application, BaseTexture, ICanvas } from "pixi.js";
 export class CharacterInstance {
   private _name: string
   private _group: string
@@ -129,11 +137,55 @@ export class MenuInstance {
   }
 }
 
-class Player {
+export class Player implements EventBus {
   private _characters: (CharacterInstance | null)[] = [null, null, null, null, null]
   private _dialogInstance: DialogInstance = new DialogInstance()
   private _menuInstance: MenuInstance = new MenuInstance()
+  private _resourceManager: ResourceManager;
+  private _vueInstance: App<Element>;
+  //@ts-ignore
+  private _pixiInstance: Application<ICanvas>;
+  private _event: EventBus;
+  public _uuid: string;
   public states: PlayerState[] = []
+
+  constructor(mountPoint: HTMLElement, baseUrl: string) {
+    this._uuid = uuid();
+    this._resourceManager = initResourceManager(baseUrl);
+    this._event = new EventEmitter<PlayerEvent, Player>();
+    this.initEvent();
+    const app = createApp(BaStoryPlayer);
+    app
+      .provide("uuid", this._uuid)
+      .provide("event", this._event)
+      .mount(mountPoint);
+    this._vueInstance = app;
+  }
+
+  private initEvent() {
+    this._event.once("AppMounted", this.initPixi, this);
+  }
+
+  private initPixi(el: HTMLDivElement) {
+    BaseTexture.defaultOptions.mipmap = 2;
+    const app = new Application({
+      width: 1440,
+      height: 810,
+      resizeTo: el,
+    });
+    el.appendChild(app.view as unknown as Node);
+    this._pixiInstance = app;
+  }
+
+  // 保存当前画布, // 可能无法保存时轴?
+  dump() {
+    // TODO
+  }
+
+  // 还原当前画布
+  restore() {
+    // TODO
+  }
 
   get characters() {
     return this._characters;
@@ -196,7 +248,7 @@ class Player {
     console.log(`[Inspect] state = ${ jdumps(this.state) }`);
   }
 
-  execCommand<K extends keyof PlayerCommand>(command: K, args: PlayerCommand[K]) {
+  execCommand<K extends keyof PlayerEvent>(command: K, args: PlayerEvent[K]) {
     switch (command) {
       case "Character": {
 
@@ -219,6 +271,78 @@ class Player {
 
   exec(cb: (state: PlayerState) => void) {
     cb(this.state);
+  }
+
+  eventNames() {
+    return this._event.eventNames();
+  }
+
+  listeners<T extends EventEmitter.EventNames<PlayerEvent>>(
+    event: T
+  ) {
+    return this._event.listeners(event);
+  }
+
+  listenerCount(event: EventEmitter.EventNames<PlayerEvent>) {
+    return this._event.listenerCount(event);
+  }
+
+  emit<T extends EventEmitter.EventNames<PlayerEvent>>(
+    event: T,
+    ...args: EventEmitter.EventArgs<PlayerEvent, T>
+  ) {
+    return this._event.emit(event, ...args);
+  }
+
+  on<T extends EventEmitter.EventNames<PlayerEvent>>(
+    event: T,
+    fn: EventEmitter.EventListener<PlayerEvent, T>,
+    context?: Player
+  ) {
+    this._event.on(event, fn, context);
+    return this;
+  }
+  addListener<T extends EventEmitter.EventNames<PlayerEvent>>(
+    event: T,
+    fn: EventEmitter.EventListener<PlayerEvent, T>,
+    context?: Player
+  ) {
+    this._event.addListener(event, fn, context);
+    return this;
+  }
+
+  once<T extends EventEmitter.EventNames<PlayerEvent>>(
+    event: T,
+    fn: EventEmitter.EventListener<PlayerEvent, T>,
+    context?: Player
+  ) {
+    this._event.once(event, fn, context);
+    return this;
+  }
+
+  removeListener<T extends EventEmitter.EventNames<PlayerEvent>>(
+    event: T,
+    fn?: EventEmitter.EventListener<PlayerEvent, T>,
+    context?: Player,
+    once?: boolean
+  ) {
+    this._event.removeListener(event, fn, context, once);
+    return this;
+  }
+
+  off<T extends EventEmitter.EventNames<PlayerEvent>>(
+    event: T,
+    fn?: EventEmitter.EventListener<PlayerEvent, T>,
+    context?: Player,
+    once?: boolean
+  ) {
+    this._event.off(event, fn, context, once);
+    return this;
+  }
+
+  removeAllListeners(event?: EventEmitter.EventNames<PlayerEvent>) {
+    this._event.removeAllListeners(event);
+    return this;
   }
 }
 

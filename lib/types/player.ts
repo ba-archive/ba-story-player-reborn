@@ -1,92 +1,7 @@
-export type PlayerCommand = {
-  // high level api
-  Title: {
-
-  };
-  Place: {
-
-  };
-  Voice: {
-
-  };
-  Episode: {
-
-  }; /** continued; nextEpisode */
-  BGM: {
-
-  };
-  ClearBGM: {
-
-  };
-  Dialog: {
-
-  };
-  HideDialog: {
-
-  };
-  Select: {
-
-  };
-  Character: {
-
-  };
-  HideCharacter: {
-
-  };
-  ST: {
-
-  };
-  ClearST: {
-
-  }; /** Clear */
-  Background: {
-
-  };
-  Config: {
-
-  };
-  Video: {
-
-  };
-  ClearVideo: {
-
-  };
-  Effect: {
-
-  }; /** apply prefab effect to object */
-    // legacy api
-  FontSize: {
-
-  }; /** Dialog */
-  HideMenu: {
-
-  }; /** Set */
-  ShowMenu: {
-
-  }; /** Set */
-  ZMC: {
-
-  }; /** Set */
-  BGShake: {
-
-  }; /** Effect */
-    // low level api
-  Load: {
-
-  }; /** load object */
-  Call: {
-
-  }; /** call object method */
-  Get: {
-
-  }; /** get object */
-  Set: {
-
-  }; /** operate object */
-  Clear: {
-
-  }; /** clear st, delete object */
-}
+import { PlayerMixins } from "@lib/types/index";
+import { Spine } from "pixi-spine";
+import gsap from "gsap";
+import EventEmitter from "eventemitter3";
 
 export const RED = "\x1B[31m";
 export const BLUE = "\x1B[34m";
@@ -126,3 +41,13 @@ export interface Animation {
   animate: (obj: Animatable, timeline: number) => void
   final: (obj: Animatable) => void
 }
+export interface AnimationType extends PlayerMixins.AnimationType, Record<string, unknown> {
+  Hoptop: [timeline: gsap.core.Timeline, student: Spine];
+  Kira: [s: string];
+}
+
+abstract class AnimationPlugin<T extends keyof AnimationType> {
+  abstract target: T;
+  abstract animate(...param: EventEmitter.ArgumentMap<Exclude<AnimationType, string | symbol>>[Extract<T, keyof AnimationType>]): void;
+}
+

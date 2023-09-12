@@ -29,8 +29,7 @@ type LoadedResource<T = any> = {
   resource: T
 }
 
-type ResourceManager = {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ResourceManager = {
   add: ILoaderAdd;
   load: ILoaderLoad;
   loadAll: (cb?: () => void) => void;
@@ -38,6 +37,8 @@ type ResourceManager = {
   onError?: OnCompleteSignal<LoadedResource & { cause: Error }>;
   onComplete?: OnCompleteSignal<Record<string, LoadedResource>>;
   setLoadedAsset(asset: LoadAsset): void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  get: <T = any>(name: string) => LoadedResource<T> | undefined;
 }
 
 type ResourceLoadItem = {
@@ -110,6 +111,13 @@ export function initResourceManager(basePath: string): ResourceManager {
             resourceMap.set(key, target);
           });
         }
+      }
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    get<T = any>(name: string) {
+      const item = resourceMap.get(name);
+      if (item && item.loaded) {
+        return Assets.get<T>(name);
       }
     },
     load<T>(asset: LoadAsset) {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, Ref, ref } from "vue";
-import initPlayer from "../../lib";
+import initPlayer from "@lib/index";
 defineOptions({
   name: "HHome",
 });
@@ -11,6 +11,5 @@ onMounted(() => {
 </script>
 
 <template>
-  <h1>Hello World</h1>
   <div ref="Player"></div>
 </template>

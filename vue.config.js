@@ -1,6 +1,7 @@
 const { defineConfig } = require("@vue/cli-service");
 const ESLintPlugin = require("eslint-webpack-plugin");
 const UnoCSS = require("@unocss/webpack").default;
+const path = require("path");
 
 /** @type {import('unplugin-auto-import/webpack')["default"]} */
 const AutoImport = require("unplugin-auto-import/webpack");
@@ -22,9 +23,8 @@ module.exports = defineConfig({
     },
   },
   chainWebpack(config) {
-
     config.resolve.alias
-      .set("@model", "ba-model/src");
+      .set("@lib", path.resolve(__dirname, "lib/"));
 
     config
       .plugin("html")
