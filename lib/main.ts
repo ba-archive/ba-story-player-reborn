@@ -121,7 +121,7 @@ export class DialogInstance {
   }
 }
 
-export class MenuInstance {
+export class UiInstance {
   private _hidden: boolean
 
   constructor(hidden = false) {
@@ -138,9 +138,12 @@ export class MenuInstance {
 }
 
 export class Player implements EventBus {
-  private _characters: (CharacterInstance | null)[] = [null, null, null, null, null]
-  private _dialogInstance: DialogInstance = new DialogInstance()
-  private _menuInstance: MenuInstance = new MenuInstance()
+  //@ts-ignore
+  private _characters: (CharacterInstance | null)[];
+  //@ts-ignore
+  private _dialogInstance: DialogInstance;
+  //@ts-ignore
+  private _menuInstance: UiInstance;
   private _resourceManager: ResourceManager;
   private _vueInstance: App<Element>;
   //@ts-ignore
@@ -164,6 +167,11 @@ export class Player implements EventBus {
 
   private initEvent() {
     this._event.once("AppMounted", this.initPixi, this);
+    this._event.once("DialogMounted", this.initDialog, this);
+  }
+
+  private initDialog(dl: DialogInstance) {
+    this._dialogInstance = dl;
   }
 
   private initPixi(el: HTMLDivElement) {
@@ -349,5 +357,5 @@ export class Player implements EventBus {
 export interface PlayerState {
   characters: (CharacterInstance | null)[]
   dialogInstance: DialogInstance
-  menuInstance: MenuInstance
+  menuInstance: UiInstance
 }

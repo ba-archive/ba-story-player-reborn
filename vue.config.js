@@ -54,6 +54,10 @@ module.exports = defineConfig({
     optimization: {
       realContentHash: true,
     },
+    cache: {
+      type: "filesystem",
+      allowCollectingMemory: true,
+    },
     plugins: [
       AutoImport({
         include: [

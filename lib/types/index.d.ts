@@ -12,6 +12,8 @@ declare global {
 }
 
 declare namespace PlayerMixins {
+  // 必须这么定义 eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
+  // 要不然ts不高兴
   interface PlayerEvent {
 
   }

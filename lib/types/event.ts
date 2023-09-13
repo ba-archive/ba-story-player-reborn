@@ -1,7 +1,9 @@
 import { PlayerMixins } from "@lib/types/index";
-import EventEmitter from "eventemitter3";
-import { Player } from "@lib/main";
+import { EventEmitter } from "eventemitter3";
+import { DialogInstance, Player, UiInstance } from "@lib/main";
 
+// 必须这么定义 eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
+// 要不然ts不高兴
 export interface PlayerEvent extends PlayerInternalEvent, PlayerMixins.PlayerEvent {
   // high level api
   Title: [title: string, subTitle: string];
@@ -89,9 +91,12 @@ export interface PlayerEvent extends PlayerInternalEvent, PlayerMixins.PlayerEve
 
   }; /** clear st, delete object */
 }
-
+// 必须这么定义 eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
+// 要不然ts不高兴
 export interface PlayerInternalEvent {
-  AppMounted: HTMLDivElement;
+  AppMounted: [el: HTMLDivElement];
+  DialogMounted: [instance: DialogInstance];
+  UiMounted: [instance: UiInstance];
 }
 
 export type EventBus = EventEmitter<PlayerEvent, Player>;

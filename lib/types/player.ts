@@ -41,7 +41,7 @@ export interface Animation {
   animate: (obj: Animatable, timeline: number) => void
   final: (obj: Animatable) => void
 }
-export interface AnimationType extends PlayerMixins.AnimationType, Record<string, unknown> {
+export interface AnimationType extends PlayerMixins.AnimationType {
   Hoptop: [timeline: gsap.core.Timeline, student: Spine];
   Kira: [s: string];
 }

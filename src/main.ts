@@ -5,6 +5,7 @@ import { createPinia } from "pinia";
 import { registerGlobalComponents } from "./components";
 
 import "@/styles/index.scss";
+import "@lib/style/index.scss";
 import "uno.css";
 
 const app = createApp(App);
