@@ -1,9 +1,8 @@
-import { PlayerMixins } from "@lib/types/index";
-import { EventEmitter } from "eventemitter3";
 import { DialogInstance, Player, UiInstance } from "@lib/main";
+import { EventEmitterOverride, PlayerMixins } from "./type";
 
-// 必须这么定义 eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
-// 要不然ts不高兴
+// eventName: argType, eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
+
 export interface PlayerEvent extends PlayerInternalEvent, PlayerMixins.PlayerEvent {
   // high level api
   Title: [title: string, subTitle: string];
@@ -22,9 +21,7 @@ export interface PlayerEvent extends PlayerInternalEvent, PlayerMixins.PlayerEve
   ClearBGM: {
 
   };
-  Dialog: {
-
-  };
+  Dialog: [text: string];
   HideDialog: {
 
   };
@@ -91,12 +88,11 @@ export interface PlayerEvent extends PlayerInternalEvent, PlayerMixins.PlayerEve
 
   }; /** clear st, delete object */
 }
-// 必须这么定义 eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
-// 要不然ts不高兴
+// eventName: argType, eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
 export interface PlayerInternalEvent {
-  AppMounted: [el: HTMLDivElement];
-  DialogMounted: [instance: DialogInstance];
-  UiMounted: [instance: UiInstance];
+  AppMounted: HTMLDivElement;
+  DialogMounted: DialogInstance;
+  UiMounted: UiInstance;
 }
 
-export type EventBus = EventEmitter<PlayerEvent, Player>;
+export type EventBus = EventEmitterOverride.EventEmitter<PlayerEvent, Player>;

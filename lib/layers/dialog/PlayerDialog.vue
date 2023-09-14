@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DialogInstance } from "@lib/main";
-import { injectEventBus, injectUuid } from "@lib/util";
+import { DialogVueInstance } from "@lib/types/player";
+import { injectEventBus, injectUuid, makeExport } from "@lib/util";
 import { onMounted, ref } from "vue";
 
 defineOptions({
@@ -11,8 +12,16 @@ const eventBus = injectEventBus();
 const root = ref<HTMLDivElement>();
 const name = ref("");
 const department = ref("");
+const content = ref("This is Dialog content");
+function showText(text: string) {
+  content.value = text;
+}
+const exports = makeExport<DialogVueInstance>({
+  content,
+  showText,
+});
 onMounted(() => {
-  eventBus.emit("DialogMounted", new DialogInstance());
+  eventBus.emit("DialogMounted", new DialogInstance(exports));
 });
 </script>
 
@@ -30,7 +39,7 @@ onMounted(() => {
       </div>
       <hr/>
       <div class="content mt-1.5% color-white">
-        This is Dialog content
+        {{ content }}
       </div>
       <div class="next-image-btn absolute right-0 bottom-1rem">&zwj;</div>
       </div>

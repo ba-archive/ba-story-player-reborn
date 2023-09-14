@@ -1,17 +1,19 @@
-import { PlayerMixins } from "@lib/types/index";
+import { PlayerEvent } from "@lib/types/index";
 import { Spine } from "pixi-spine";
 import gsap from "gsap";
 import EventEmitter from "eventemitter3";
+import { EventEmitterOverride, PlayerMixins } from "./type";
 
 export const RED = "\x1B[31m";
 export const BLUE = "\x1B[34m";
 export const GREEN = "\x1B[32m";
 export const RESET = "\x1B[0m";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function jloads(text: string): any {
   return JSON.parse(text);
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function jdumps(obj: any): string {
   return JSON.stringify(obj, null, 2) || "";
 }
@@ -47,7 +49,22 @@ export interface AnimationType extends PlayerMixins.AnimationType {
 }
 
 abstract class AnimationPlugin<T extends keyof AnimationType> {
-  abstract target: T;
+  abstract readonly target: T;
   abstract animate(...param: EventEmitter.ArgumentMap<Exclude<AnimationType, string | symbol>>[Extract<T, keyof AnimationType>]): void;
 }
 
+export type PlayerEventKey = EventEmitterOverride.EventNames<PlayerEvent>;
+
+export type PlayerEventArg<K extends PlayerEventKey> = EventEmitterOverride.EventArgs<PlayerEvent, K>
+
+export type PlayerEventListener<K extends PlayerEventKey> = EventEmitterOverride.EventListener<PlayerEvent, K>
+
+export abstract class PlayerLayerInstance<T> {
+  abstract dump(): T;
+  abstract restore(state: T): void;
+}
+
+export type DialogVueInstance = {
+  content: Ref<string>;
+  showText(...arges: PlayerEventArg<"Dialog">): void;
+}

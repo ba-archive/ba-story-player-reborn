@@ -1,4 +1,4 @@
-import { AnimationState, jdumps, Animation, Animatable, GREEN, RESET, BLUE } from "./types/player";
+import { AnimationState, jdumps, Animation, Animatable, GREEN, RESET, BLUE, DialogVueInstance } from "./types/player";
 import { initResourceManager, ResourceManager } from "@lib/global/resourceManager";
 import { App } from "vue";
 import { uuid } from "@lib/util";
@@ -7,6 +7,7 @@ import BaStoryPlayer from "@lib/BaStoryPlayer.vue";
 import { EventBus, PlayerEvent } from "@lib/types/event";
 import EventEmitter from "eventemitter3";
 import { Application, BaseTexture, ICanvas } from "pixi.js";
+import { GetPrivateMember, PlayerEventArg, PlayerEventKey, PlayerEventListener, PlayerLayerInstance } from "./types";
 export class CharacterInstance {
   private _name: string
   private _group: string
@@ -91,33 +92,23 @@ class MoveLeft implements Animation {
   }
 }
 
-export class DialogInstance {
-  private _content?: string
-  private _speaker?: string
-  private _group?: string
+export class DialogInstance extends PlayerLayerInstance<string> {
+  private _vueInstance: DialogVueInstance
 
-  constructor(content?: string, speaker?: string, group?: string) {
-    this._content = content;
-    this._speaker = speaker;
-    this._group = group;
+  constructor(vue: DialogVueInstance) {
+    super();
+    this._vueInstance = vue;
   }
 
-  get content() {
-    return this._content;
+  dump(): string {
+    return this._vueInstance.content.value;
+  }
+  restore(state: string): void {
+    this._vueInstance.showText(state);
   }
 
-  get speaker() {
-    return this._speaker;
-  }
-
-  get group() {
-    return this._group;
-  }
-
-  setValue(content?: string, speaker?: string, group?: string) {
-    this._content = content;
-    this._speaker = speaker;
-    this._group = group;
+  showText(...args: PlayerEventArg<"Dialog">) {
+    this._vueInstance.showText(...args);
   }
 }
 
@@ -137,25 +128,28 @@ export class UiInstance {
   }
 }
 
-export class Player implements EventBus {
+type PlayerPrivateMember = GetPrivateMember<Player>;
+
+export class Player extends PlayerLayerInstance<PlayerPrivateMember> implements EventBus {
   //@ts-ignore
-  private _characters: (CharacterInstance | null)[];
+  public _characters: (CharacterInstance | null)[];
   //@ts-ignore
-  private _dialogInstance: DialogInstance;
+  public _dialogInstance: DialogInstance;
   //@ts-ignore
-  private _menuInstance: UiInstance;
-  private _resourceManager: ResourceManager;
-  private _vueInstance: App<Element>;
+  public _menuInstance: UiInstance;
+  public _resourceManager: ResourceManager;
+  public _vueInstance: App<Element>;
   //@ts-ignore
-  private _pixiInstance: Application<ICanvas>;
-  private _event: EventBus;
+  public _pixiInstance: Application<ICanvas>;
+  public _event: EventBus;
   public _uuid: string;
   public states: PlayerState[] = []
 
   constructor(mountPoint: HTMLElement, baseUrl: string) {
+    super();
     this._uuid = uuid();
     this._resourceManager = initResourceManager(baseUrl);
-    this._event = new EventEmitter<PlayerEvent, Player>();
+    this._event = new EventEmitter<PlayerEvent, Player>() as EventBus;
     this.initEvent();
     const app = createApp(BaStoryPlayer);
     app
@@ -188,10 +182,13 @@ export class Player implements EventBus {
   // 保存当前画布, // 可能无法保存时轴?
   dump() {
     // TODO
+    return {
+
+    } as PlayerPrivateMember;
   }
 
   // 还原当前画布
-  restore() {
+  restore(state: PlayerPrivateMember) {
     // TODO
   }
 
@@ -244,7 +241,7 @@ export class Player implements EventBus {
 
   /** 播放当前分镜，发送信息给 Player（通过 PlayerCommandType），展示分镜 */
   playStoryBoard() {
-    console.log(`${ BLUE }[Dialog] ${ this._dialogInstance.speaker }: ${ this._dialogInstance.content }${ RESET }`);
+    // console.log(`${ BLUE }[Dialog] ${ this._dialogInstance.speaker }: ${ this._dialogInstance.content }${ RESET }`);
     // show character
     for (const character of this._characters) {
       if (character)
@@ -256,16 +253,21 @@ export class Player implements EventBus {
     console.log(`[Inspect] state = ${ jdumps(this.state) }`);
   }
 
-  execCommand<K extends keyof PlayerEvent>(command: K, args: PlayerEvent[K]) {
+  execCommand<K extends keyof PlayerEvent>(command: K, ...args: PlayerEventArg<K>) {
     switch (command) {
       case "Character": {
-
+        break;
+      }
+      case "Dialog": {
+        const a = args as PlayerEventArg<"Dialog">;
+        this._dialogInstance.showText(...a);
+        break;
       }
     }
   }
 
   execDialogCommand(content: string, speaker: string) {
-    this._dialogInstance.setValue(content, speaker, "speaker'group");
+    // this._dialogInstance
   }
 
   execCharacterCommand(name: string, position: 1 | 2 | 3 | 4 | 5, face: number, emotion: string, effect?: string, animation?: Animation) {
@@ -285,52 +287,52 @@ export class Player implements EventBus {
     return this._event.eventNames();
   }
 
-  listeners<T extends EventEmitter.EventNames<PlayerEvent>>(
+  listeners<T extends PlayerEventKey>(
     event: T
   ) {
     return this._event.listeners(event);
   }
 
-  listenerCount(event: EventEmitter.EventNames<PlayerEvent>) {
+  listenerCount(event: PlayerEventKey) {
     return this._event.listenerCount(event);
   }
 
-  emit<T extends EventEmitter.EventNames<PlayerEvent>>(
+  emit<T extends PlayerEventKey>(
     event: T,
-    ...args: EventEmitter.EventArgs<PlayerEvent, T>
+    ...args: PlayerEventArg<T>
   ) {
     return this._event.emit(event, ...args);
   }
 
-  on<T extends EventEmitter.EventNames<PlayerEvent>>(
-    event: T,
-    fn: EventEmitter.EventListener<PlayerEvent, T>,
+  on<K extends PlayerEventKey>(
+    event: K,
+    fn: PlayerEventListener<K>,
     context?: Player
   ) {
     this._event.on(event, fn, context);
     return this;
   }
-  addListener<T extends EventEmitter.EventNames<PlayerEvent>>(
-    event: T,
-    fn: EventEmitter.EventListener<PlayerEvent, T>,
+  addListener<K extends PlayerEventKey>(
+    event: K,
+    fn: PlayerEventListener<K>,
     context?: Player
   ) {
     this._event.addListener(event, fn, context);
     return this;
   }
 
-  once<T extends EventEmitter.EventNames<PlayerEvent>>(
-    event: T,
-    fn: EventEmitter.EventListener<PlayerEvent, T>,
+  once<K extends PlayerEventKey>(
+    event: K,
+    fn: PlayerEventListener<K>,
     context?: Player
   ) {
     this._event.once(event, fn, context);
     return this;
   }
 
-  removeListener<T extends EventEmitter.EventNames<PlayerEvent>>(
-    event: T,
-    fn?: EventEmitter.EventListener<PlayerEvent, T>,
+  removeListener<K extends PlayerEventKey>(
+    event: K,
+    fn?: PlayerEventListener<K>,
     context?: Player,
     once?: boolean
   ) {
@@ -338,9 +340,9 @@ export class Player implements EventBus {
     return this;
   }
 
-  off<T extends EventEmitter.EventNames<PlayerEvent>>(
-    event: T,
-    fn?: EventEmitter.EventListener<PlayerEvent, T>,
+  off<K extends PlayerEventKey>(
+    event: K,
+    fn?: PlayerEventListener<K>,
     context?: Player,
     once?: boolean
   ) {
@@ -348,7 +350,7 @@ export class Player implements EventBus {
     return this;
   }
 
-  removeAllListeners(event?: EventEmitter.EventNames<PlayerEvent>) {
+  removeAllListeners(event?: PlayerEventKey) {
     this._event.removeAllListeners(event);
     return this;
   }

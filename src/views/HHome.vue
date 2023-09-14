@@ -6,7 +6,8 @@ defineOptions({
 });
 const Player = ref<HTMLElement>() as Ref<HTMLElement>;
 onMounted(() => {
-  initPlayer(Player.value);
+  const player = initPlayer(Player.value);
+  Reflect.set(window, "player", player);
 });
 </script>
 
