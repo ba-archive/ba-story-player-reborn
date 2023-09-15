@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { DialogInstance } from "@lib/main";
 import { DialogVueInstance } from "@lib/types/player";
-import { injectEventBus, injectUuid, makeExport } from "@lib/util";
+import { injectEventBus, injectPlayer, injectUuid, makeExport } from "@lib/util";
 import { onMounted, ref } from "vue";
+import { DialogInstance } from ".";
 
 defineOptions({
   name: "PlayerDialog",
@@ -21,7 +21,7 @@ const exports = makeExport<DialogVueInstance>({
   showText,
 });
 onMounted(() => {
-  eventBus.emit("DialogMounted", new DialogInstance(exports));
+  eventBus.emit("DialogMounted", exports);
 });
 </script>
 
@@ -75,7 +75,6 @@ hr {
     width: $size;
     height: $size;
   }
-
   @keyframes next-btn {
     0% {
       transform: translateY(0);

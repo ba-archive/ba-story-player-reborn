@@ -1,4 +1,4 @@
-import { PlayerEvent } from "@lib/types/index";
+import { GetPrivateMember, PlayerEvent } from "@lib/types/index";
 import { Spine } from "pixi-spine";
 import gsap from "gsap";
 import EventEmitter from "eventemitter3";
@@ -45,23 +45,57 @@ export interface Animation {
 }
 export interface AnimationType extends PlayerMixins.AnimationType {
   Hoptop: [timeline: gsap.core.Timeline, student: Spine];
-  Kira: [s: string];
+  Kira: string;
 }
 
 abstract class AnimationPlugin<T extends keyof AnimationType> {
   abstract readonly target: T;
-  abstract animate(...param: EventEmitter.ArgumentMap<Exclude<AnimationType, string | symbol>>[Extract<T, keyof AnimationType>]): void;
+  abstract animate(...param: EventEmitterOverride.ArgumentMap<Exclude<AnimationType, string | symbol>>[Extract<T, keyof AnimationType>]): void;
 }
 
 export type PlayerEventKey = EventEmitterOverride.EventNames<PlayerEvent>;
 
-export type PlayerEventArg<K extends PlayerEventKey> = EventEmitterOverride.EventArgs<PlayerEvent, K>
+export type PlayerEventArg<K extends PlayerEventKey> = EventEmitterOverride.EventArgs<PlayerEvent, K>;
 
-export type PlayerEventListener<K extends PlayerEventKey> = EventEmitterOverride.EventListener<PlayerEvent, K>
+export type PlayerEventListener<K extends PlayerEventKey> = EventEmitterOverride.EventListener<PlayerEvent, K>;
 
-export abstract class PlayerLayerInstance<T> {
-  abstract dump(): T;
-  abstract restore(state: T): void;
+export type GeneraPlayerLayer = PlayerLayerInstance<unknown>;
+
+type DoDumpStructure<T> = T extends object ?
+  {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [P in keyof T]: T[P] extends PlayerLayerInstance<any, infer TSelf> ?
+      DumpStructure<T[P], TSelf> :
+      T[P]
+  } :
+  T;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type DumpStructure<T, TLevel = any> = T extends object ?
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TLevel extends PlayerLayerInstance<any> ?
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    DoDumpStructure<GetPrivateMember<T, PlayerLayerInstance<any>>> :
+    DoDumpStructure<GetPrivateMember<T>> :
+  T;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export abstract class PlayerLayerInstance<T, TLevel = any> {
+  dump(): DumpStructure<T, TLevel> {
+    const res = {};
+    Object.keys(this)
+      .filter((key) => key.startsWith("_"))
+      .forEach((key) => {
+        const t = Reflect.get(this, key);
+        const k = key.replace("_", "");
+        if (t instanceof PlayerLayerInstance) {
+          Reflect.set(res, k, t.dump());
+        } else {
+          Reflect.set(res, k, t);
+        }
+      });
+    return res as DumpStructure<T, TLevel>;
+  }
+  abstract restore(state: DumpStructure<T, TLevel>): void;
 }
 
 export type DialogVueInstance = {

@@ -1,4 +1,5 @@
 import "pixi.js";
+import { ResourceLoadItem } from "@lib/types/typescript";
 declare module "pixi.js" {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export interface LoadAsset<T = any> {
@@ -129,7 +130,9 @@ declare namespace EventEmitterOverride {
   export type ArgumentMap<T extends object> = {
     [K in keyof T]: T[K] extends (...args: any[]) => void
       ? Parameters<T[K]>
-      : T[K]
+      : T[K] extends any[] ?
+        T[K] :
+        [T[K]]
   };
 
   type ToSingleArgFn<TArg> = TArg extends any[] ? (TArg extends [any] ? (arg: TArg[0]) => void : (...args: TArg) => void) : (arg: TArg) => void;

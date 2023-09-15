@@ -1,6 +1,5 @@
+import { OnCompleteSignal, ResourceLoadItem } from "@lib/types";
 import { Assets, type LoadAsset } from "pixi.js";
-
-type OnCompleteSignal<T> = (resource: T) => void;
 
 declare interface ILoaderAdd {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,13 +37,7 @@ export type ResourceManager = {
   onComplete?: OnCompleteSignal<Record<string, LoadedResource>>;
   setLoadedAsset(asset: LoadAsset): void;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  get: <T = any>(name: string) => LoadedResource<T> | undefined;
-}
-
-type ResourceLoadItem = {
-  param: LoadAsset;
-  onComplete?: OnCompleteSignal<never>;
-  loaded: boolean;
+  get: <T = any>(nameOrId: string) => T | undefined;
 }
 
 export function initResourceManager(basePath: string): ResourceManager {
@@ -94,6 +87,9 @@ export function initResourceManager(basePath: string): ResourceManager {
       } else {
         // (asset: LoadAsset, callback?: OnCompleteSignal<T>)
         target.param = keysIn;
+        if (!Array.isArray(target.param.alias)) {
+          target.param.alias = [keysIn.name];
+        }
         target.onComplete = callback;
       }
       // distinct 合并url相同的资源
@@ -114,14 +110,17 @@ export function initResourceManager(basePath: string): ResourceManager {
       }
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    get<T = any>(name: string) {
-      const item = resourceMap.get(name);
+    get<T = any>(nameOrId: string) {
+      const item = resourceMap.get(nameOrId);
       if (item && item.loaded) {
-        return Assets.get<T>(name);
+        return Assets.get<T>(nameOrId);
       }
     },
     load<T>(asset: LoadAsset) {
       // 加到本地map中
+      if (!Array.isArray(asset.alias)) {
+        asset.alias = [asset.name];
+      }
       this.add(asset);
       return Assets.load<T>(asset).then((resource) => {
         this.setLoadedAsset(asset);

@@ -1,14 +1,15 @@
-import { DialogInstance, Player, UiInstance } from "@lib/main";
+// @ts-nocheck
+import { Player } from "@lib/main";
 import { EventEmitterOverride, PlayerMixins } from "./type";
+import { DialogInstance } from "@lib/layers/dialog";
+import { UiInstance } from "@lib/layers/ui";
 
 // eventName: argType, eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
 
-export interface PlayerEvent extends PlayerInternalEvent, PlayerMixins.PlayerEvent {
+export interface PlayerEvent extends PlayerMixins.PlayerEvent {
   // high level api
   Title: [title: string, subTitle: string];
-  Place: {
-
-  };
+  Place: {};
   Voice: {
 
   };
@@ -89,10 +90,11 @@ export interface PlayerEvent extends PlayerInternalEvent, PlayerMixins.PlayerEve
   }; /** clear st, delete object */
 }
 // eventName: argType, eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
-export interface PlayerInternalEvent {
+export interface PlayerInternalEvent extends PlayerEvent {
   AppMounted: HTMLDivElement;
-  DialogMounted: DialogInstance;
+  DialogMounted: DialogVueInstance;
   UiMounted: UiInstance;
 }
 
-export type EventBus = EventEmitterOverride.EventEmitter<PlayerEvent, Player>;
+export type EventBus = EventEmitterOverride.EventEmitter<PlayerInternalEvent, Player>;
+export type PlayerEventBus = EventEmitterOverride.EventEmitter<PlayerEvent, Player>;
