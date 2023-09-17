@@ -1,8 +1,10 @@
-import { GetPrivateMember, PlayerEvent } from "@lib/types/index";
+import { GetPrivateMember, KeyTuple, PlayerEvent, TypeTuple } from "@lib/types/index";
 import { Spine } from "pixi-spine";
 import gsap from "gsap";
 import EventEmitter from "eventemitter3";
 import { EventEmitterOverride, PlayerMixins } from "./type";
+import { Player } from "@lib/main";
+import { LoadAsset, Resource, Texture } from "pixi.js";
 
 export const RED = "\x1B[31m";
 export const BLUE = "\x1B[34m";
@@ -17,6 +19,14 @@ export function jloads(text: string): any {
 export function jdumps(obj: any): string {
   return JSON.stringify(obj, null, 2) || "";
 }
+
+export type ResourceLoadItem = {
+  param: LoadAsset;
+  onComplete?: OnCompleteSignal<never>;
+  loaded: boolean;
+}
+
+export type OnCompleteSignal<T> = (resource: T) => void;
 
 export interface Effect {
   color: string
@@ -44,13 +54,43 @@ export interface Animation {
   final: (obj: Animatable) => void
 }
 export interface AnimationType extends PlayerMixins.AnimationType {
-  Hoptop: [timeline: gsap.core.Timeline, student: Spine];
+  Hoptop: [string, number];
   Kira: string;
 }
 
-abstract class AnimationPlugin<T extends keyof AnimationType> {
-  abstract readonly target: T;
-  abstract animate(...param: EventEmitterOverride.ArgumentMap<Exclude<AnimationType, string | symbol>>[Extract<T, keyof AnimationType>]): void;
+type RestrictResourceList0<T> = T extends [unknown, ...infer P] ?
+  P extends [] ?
+    [string] :
+    [string, ...RestrictResourceList0<P>] :
+  never;
+
+type RestrictResourceList<T extends keyof AnimationType, L = AnimationType[T]> = L extends unknown[]
+  ? RestrictResourceList0<L>
+// eslint-disable-next-line @typescript-eslint/ban-types
+  : L extends {}
+    ? KeyTuple<L>
+    : never;
+
+type AnimationArg0<T extends keyof AnimationType> = EventEmitterOverride.ArgumentMap<Exclude<AnimationType, string | symbol>>[Extract<T, keyof AnimationType>];
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+type AnimationArg<T extends keyof AnimationType, L = AnimationType[T]> = L extends unknown[]
+  ? AnimationArg0<T> | Record<string, L[number]>
+// eslint-disable-next-line @typescript-eslint/ban-types
+  : L extends {}
+    ? TypeTuple<L> | L
+    : never;
+
+export abstract class AnimationPlugin<T extends keyof AnimationType> {
+  abstract readonly resourceNames: RestrictResourceList<T>;
+  abstract animate(timeline: gsap.core.Timeline, spine: Spine, player: Player, param: AnimationArg<T>): void;
+}
+
+class A extends AnimationPlugin<"Hoptop"> {
+  animate(timeline: gsap.core.Timeline, spine: Spine, player: Player, param: [string, number] | Record<string, string | number>): void {
+    throw new Error("Method not implemented.");
+  }
+  resourceNames: ["a", "b"] = ["a", "b"];
 }
 
 export type PlayerEventKey = EventEmitterOverride.EventNames<PlayerEvent>;
@@ -72,11 +112,7 @@ type DoDumpStructure<T> = T extends object ?
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DumpStructure<T, TLevel = any> = T extends object ?
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TLevel extends PlayerLayerInstance<any> ?
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    DoDumpStructure<GetPrivateMember<T, PlayerLayerInstance<any>>> :
-    DoDumpStructure<GetPrivateMember<T>> :
-  T;
+    DoDumpStructure<GetPrivateMember<T, TLevel>> : T;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export abstract class PlayerLayerInstance<T, TLevel = any> {

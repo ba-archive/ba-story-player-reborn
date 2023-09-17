@@ -13,10 +13,49 @@ type RemoveNever<T> = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type GetPrivateMember<T, TFather = any> = RemoveNever<GetPrivateMemberAsNever<T, TFather>>;
 
-export type OnCompleteSignal<T> = (resource: T) => void;
+type UnionToIntersection<U> = (
+  U extends unknown ? (arg: U) => 0 : never
+) extends (arg: infer I) => 0
+  ? I
+  : never;
 
-export type ResourceLoadItem = {
-  param: LoadAsset;
-  onComplete?: OnCompleteSignal<never>;
-  loaded: boolean;
-}
+
+type LastInUnion<U> = UnionToIntersection<
+  U extends unknown ? (x: U) => 0 : never
+> extends (x: infer L) => 0
+  ? L
+  : never;
+
+type UnionToTuple<U, Last = LastInUnion<U>> = [U] extends [never]
+  ? []
+  : [...UnionToTuple<Exclude<U, Last>>, Last];
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type KeyTuple<T extends {}> = UnionToTuple<keyof T>;
+
+type ObjectTypes<T, U = Required<T>> = {
+  [K in keyof U]: [K, U[K] extends never ? undefined : U[K]]
+}[keyof U];
+
+type LastInUnionForType<U> = UnionToIntersection<
+  U extends unknown ? (x: U) => 0 : never
+> extends (x: infer L) => 0
+  ? L
+  : never;
+
+type UnionToTupleForType<U, Last = LastInUnionForType<U>> = [U] extends [never]
+  ? []
+  : [...UnionToTupleForType<Exclude<U, Last>>, Last];
+
+type FlatType0<T> = T extends [string, infer Type]
+  ? Type
+  : never;
+
+type FlatType<T extends unknown[]> = T extends [infer F, ...infer R]
+  ? R extends []
+    ? FlatType0<F>
+    : [FlatType0<F>, FlatType<R>]
+  : T
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type TypeTuple<T extends {}> = FlatType<UnionToTupleForType<ObjectTypes<T>>>;

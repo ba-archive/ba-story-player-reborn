@@ -1,22 +1,46 @@
 import { Player } from "@lib/main";
-import { AnimationState, Animatable, Animation, PlayerLayerInstance } from "@lib/types";
+import { AnimationState, Animatable, Animation, PlayerLayerInstance, AnimationType, AnimationPlugin } from "@lib/types";
 import { Spine } from "pixi-spine";
 import { Container, Texture } from "pixi.js";
 
+
 export class CharacterInstance extends PlayerLayerInstance<CharacterInstance> {
-  private player: Player;
-  private container: Container;
+  private _player: Player;
+  private _container: Container;
+  private _state = new Map<number, Spine>();
+  private _plugins = new Map<keyof AnimationType, AnimationPlugin<keyof AnimationType>[]>
   constructor(_player: Player) {
     super();
-    this.player = _player;
-    this.container = new Container();
-    this.player._pixiInstance.stage.addChild(this.container);
+    this._player = _player;
+    this._container = new Container();
+    this._player._pixiInstance.stage.addChild(this._container);
   }
   putCharacter(id: string) {
-    const resource = this.player.getResource<Spine>(id);
+    const resource = this._player.getResource<Spine>(id);
     if (resource) {
       const ch = new Spine(resource.spineData);
-      this.container.addChild(ch);
+      this._container.addChild(ch);
+      this._state.set(1, ch);
+    }
+  }
+  animate(position: number, type: keyof AnimationType) {
+    const plugins = this._plugins.get(type);
+    if (plugins) {
+      const spine = this._state.get(position);
+      if (spine) {
+        const timeline = gsap.timeline();
+        plugins.forEach((plugin) => {
+          plugin.animate(timeline, spine);
+        });
+      }
+    }
+  }
+  registerPlugin<T extends keyof AnimationType>(type: T, plugin: AnimationPlugin<T>) {
+    const exist = this._plugins.get(type);
+    if (exist) {
+      exist.push(plugin);
+    } else {
+      this._plugins.set(type, [plugin]);
     }
   }
   override dump() {
