@@ -2,13 +2,14 @@ import { Player } from "@lib/main";
 import { AnimationState, Animatable, Animation, PlayerLayerInstance, AnimationType, AnimationPlugin } from "@lib/types";
 import { Spine } from "pixi-spine";
 import { Container, Texture } from "pixi.js";
-
+import { buildPluginParams } from "./util";
 
 export class CharacterInstance extends PlayerLayerInstance<CharacterInstance> {
   private _player: Player;
   private _container: Container;
   private _state = new Map<number, Spine>();
-  private _plugins = new Map<keyof AnimationType, AnimationPlugin<keyof AnimationType>[]>
+  // @ts-ignore
+  private _plugins: { [P in keyof AnimationType]: (AnimationPlugin<P>)[] } = {};
   constructor(_player: Player) {
     super();
     this._player = _player;
@@ -24,23 +25,34 @@ export class CharacterInstance extends PlayerLayerInstance<CharacterInstance> {
     }
   }
   animate(position: number, type: keyof AnimationType) {
-    const plugins = this._plugins.get(type);
+    const plugins = this._plugins[type];
     if (plugins) {
       const spine = this._state.get(position);
       if (spine) {
         const timeline = gsap.timeline();
-        plugins.forEach((plugin) => {
-          plugin.animate(timeline, spine);
+        // 收集plugins要求的资源并加载
+        const resourcePath = new Set(...plugins
+          .map((it: AnimationPlugin<any>) => it.resourceNames)
+          .flat() as string[]);
+        const resource = {};
+        plugins.forEach((plugin: AnimationPlugin<any>) => {
+          // 根据资源构成param map
+
+          // 代理param map支持数组访问和map访问
+          const param = buildPluginParams(plugin.resourceNames as string[], []);
+          // 执行动画
+          plugin.animate(timeline, spine, this._player, param);
         });
       }
     }
   }
   registerPlugin<T extends keyof AnimationType>(type: T, plugin: AnimationPlugin<T>) {
-    const exist = this._plugins.get(type);
+    const exist = this._plugins[type];
     if (exist) {
       exist.push(plugin);
     } else {
-      this._plugins.set(type, [plugin]);
+      // @ts-ignore
+      this._plugins[type] = [plugin];
     }
   }
   override dump() {

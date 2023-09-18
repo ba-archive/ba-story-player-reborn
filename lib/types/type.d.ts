@@ -12,16 +12,6 @@ declare global {
   }
 }
 
-declare namespace PlayerMixins {
-  // eventName: argType, eventName: [argType1, argType2]; or eventName: [argName1: argType1, argName2: argType2];
-  interface PlayerEvent {
-
-  }
-  interface AnimationType {
-
-  }
-}
-
 declare namespace EventEmitterOverride {
 
   declare class EventEmitter<

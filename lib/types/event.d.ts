@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { Player } from "@lib/main";
-import { EventEmitterOverride, PlayerMixins } from "./type";
+import { EventEmitterOverride } from "./type";
+import { PlayerMixins } from "./player";
 import { DialogInstance } from "@lib/layers/dialog";
 import { UiInstance } from "@lib/layers/ui";
 
