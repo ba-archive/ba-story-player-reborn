@@ -1,10 +1,10 @@
-import { jdumps, GREEN, RESET } from "./types/player";
+import { GREEN, RESET } from "./types/player";
 import { initResourceManager, ResourceManager } from "@lib/global/resourceManager";
 import { App } from "vue";
 import { uuid } from "@lib/util";
 import { createApp } from "vue";
 import BaStoryPlayer from "@lib/BaStoryPlayer.vue";
-import { EventBus, PlayerEvent, PlayerEventBus } from "@lib/types/event";
+import { EventBus, PlayerEventBus } from "@lib/types/event";
 import EventEmitter from "eventemitter3";
 import { Application, BaseTexture, ICanvas } from "pixi.js";
 import { DialogVueInstance, DumpStructure, GeneraPlayerLayer, PlayerEventArg, PlayerEventKey, PlayerEventListener, PlayerLayerInstance } from "./types";
@@ -12,6 +12,7 @@ import { CharacterInstance } from "./layers/character";
 import { UiInstance } from "./layers/ui";
 import { DialogInstance } from "./layers/dialog";
 import "pixi-spine";
+import { PlayerEvent } from "@lib/types/type";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PlayerDumpType = DumpStructure<Player, GeneraPlayerLayer>;
@@ -133,8 +134,9 @@ export class Player extends PlayerLayerInstance<Player, GeneraPlayerLayer> imple
     // console.log(`${ BLUE }[Dialog] ${ this._dialogInstance.speaker }: ${ this._dialogInstance.content }${ RESET }`);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   execInspect() {
-    console.log(`[Inspect] state = ${ jdumps(this.state) }`);
+    
   }
 
   execCommand<K extends keyof PlayerEvent>(command: K, ...args: PlayerEventArg<K>) {

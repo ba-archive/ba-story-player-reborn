@@ -1,8 +1,9 @@
 import { Player } from "@lib/main";
-import { AnimationState, Animatable, Animation, PlayerLayerInstance, AnimationType, AnimationPlugin } from "@lib/types";
+import { AnimationState, Animatable, Animation, PlayerLayerInstance } from "@lib/types";
 import { Spine } from "pixi-spine";
 import { Container, Texture } from "pixi.js";
 import { buildPluginParams } from "./util";
+import { AnimationPlugin, AnimationType } from "@lib/types/type";
 
 export class CharacterInstance extends PlayerLayerInstance<CharacterInstance> {
   private _player: Player;
@@ -32,9 +33,11 @@ export class CharacterInstance extends PlayerLayerInstance<CharacterInstance> {
         const timeline = gsap.timeline();
         // 收集plugins要求的资源并加载
         const resourcePath = new Set(...plugins
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .map((it: AnimationPlugin<any>) => it.resourceNames)
           .flat() as string[]);
         const resource = {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         plugins.forEach((plugin: AnimationPlugin<any>) => {
           // 根据资源构成param map
 

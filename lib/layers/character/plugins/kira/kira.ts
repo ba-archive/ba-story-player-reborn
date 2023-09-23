@@ -1,9 +1,9 @@
 import { Player } from "@lib/main";
-import { AnimationPlugin } from "@lib/types";
+import { AnimationPlugin } from "@lib/types/type";
 import { Spine } from "pixi-spine";
 import { Resource, Texture } from "pixi.js";
 
-declare module "@lib/types" {
+declare module "@lib/types/type" {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace PlayerMixins {
     interface AnimationType {
